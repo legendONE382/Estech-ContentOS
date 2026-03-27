@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Estech ContentOS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <header>
+      <h1>Estech ContentOS</h1>
+      <p class="tagline">
+        We don’t just generate content — we build AI systems that turn ideas into consistent
+        revenue-driving marketing assets.
+      </p>
+    </header>
+
+    <main class="grid">
+      <section class="card">
+        <h2>Step 1: Brand Setup</h2>
+        <form method="post" action="/brand" class="form-grid">
+          <label>Business name <input required name="business_name" /></label>
+          <label>Industry <input required name="industry" /></label>
+          <label>Target audience <input required name="target_audience" /></label>
+          <label
+            >Brand tone
+            <select name="brand_tone">
+              <option>professional</option>
+              <option>playful</option>
+              <option>bold</option>
+            </select>
+          </label>
+          <label>Products/services <textarea required name="products_services"></textarea></label>
+          <label>Website link <input name="website_link" /></label>
+          <label>Competitors <input name="competitors" /></label>
+          <button type="submit">Save Brand Context</button>
+        </form>
+
+        {% if brand %}
+        <div class="saved-box">
+          <strong>Active brand profile:</strong>
+          <p>{{ brand['business_name'] }} ({{ brand['industry'] }}) — tone: {{ brand['brand_tone'] }}</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="card">
+        <h2>Step 2 + 3: Prompt Engine & Content Generator</h2>
+        <form id="generate-form" class="form-grid">
+          <label
+            >Content type
+            <select name="content_type">
+              <option>Instagram captions (5)</option>
+              <option>Blog post outline</option>
+              <option>Email campaign</option>
+              <option>Ad copy</option>
+              <option>Sales copy</option>
+            </select>
+          </label>
+          <label>Topic <input required name="topic" /></label>
+          <label>Product/service <input required name="product" /></label>
+          <label
+            >Goal
+            <select name="goal">
+              <option>engagement</option>
+              <option>sales</option>
+              <option>awareness</option>
+            </select>
+          </label>
+          <button type="submit">Generate Content</button>
+        </form>
+
+        <div id="status"></div>
+        <pre id="output">No output yet.</pre>
+      </section>
+
+      <section class="card full-width">
+        <h2>Step 4 Lite: Saved Content Library</h2>
+        {% if library %}
+        <div class="library">
+          {% for item in library %}
+          <article>
+            <h3>{{ item['content_type'] }} — {{ item['goal'] }}</h3>
+            <p><strong>Topic:</strong> {{ item['topic'] }} | <strong>Product:</strong> {{ item['product'] }}</p>
+            <pre>{{ item['output_text'] }}</pre>
+          </article>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p>No content saved yet.</p>
+        {% endif %}
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById('generate-form');
+      const output = document.getElementById('output');
+      const status = document.getElementById('status');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        status.textContent = 'Generating...';
+        const formData = new FormData(form);
+
+        try {
+          const response = await fetch('/generate', { method: 'POST', body: formData });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'Unknown error');
+
+          output.textContent = data.output;
+          status.textContent = 'Generated and saved to library.';
+          window.setTimeout(() => window.location.reload(), 1200);
+        } catch (err) {
+          status.textContent = `Error: ${err.message}`;
+        }
+      });
+    </script>
+  </body>
+</html>
